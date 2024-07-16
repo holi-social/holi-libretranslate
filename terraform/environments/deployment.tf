@@ -59,10 +59,10 @@ resource "google_cloud_run_v2_service" "libretranslate" {
       max_instance_count = local.environment == "production" ? "10" : "3"
 
     }
-    vpc_access {
+    /*     vpc_access {
       connector = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
       egress    = "PRIVATE_RANGES_ONLY"
-    }
+    } */
   }
 
   traffic {
