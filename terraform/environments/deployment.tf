@@ -17,6 +17,11 @@ resource "google_project_service" "service" {
   disable_on_destroy         = false
 }
 
+variable "image_tag" {
+  type     = string
+  nullable = false
+}
+
 resource "google_cloud_run_v2_service" "libretranslate_service" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = random_id.main.hex
@@ -26,7 +31,7 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
   template {
     service_account = data.terraform_remote_state.holi_libretranslate_common_state.outputs.cloud_run_service_account_email
     containers {
-      image = "libretranslate/libretranslate:latest"
+      image = "${data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_location}/holi-libretranslate:${var.image_tag}"
       ports {
         container_port = 5000
       }
