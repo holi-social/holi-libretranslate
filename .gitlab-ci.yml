@@ -6,46 +6,32 @@ default:
   tags:
     - 1cpu-4gb
 
-stages:
-  - build
-  - deploy
+variables:
+  API_DOMAIN_PATH: "$CI_PROJECT_DIR/api_domain"
 
-build_docker:
-  image: docker:20.10
-  stage: "build"
-  services:
-    - docker:20.10-dind
-  variables:
-    ARTIFACT_IMAGE: europe-north1-docker.pkg.dev/holi-shared/docker/holi-libretranslate
-  before_script:
-    - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://europe-north1-docker.pkg.dev
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - echo '===> building LibreTranslate image'
-    - docker pull $ARTIFACT_IMAGE || true # Allows us to use --cache-from, we need to tag with latest in the next command for this to work
-    - docker build --cache-from $ARTIFACT_IMAGE -t $ARTIFACT_IMAGE:latest -t $ARTIFACT_IMAGE:$CI_COMMIT_SHA -t $ARTIFACT_IMAGE:$CI_COMMIT_REF_SLUG .
-    - docker push $ARTIFACT_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
-    - docker push $ARTIFACT_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
+stages:
+  - deploy
 
 .deploy:
   stage: "deploy"
   image:
     name: "hashicorp/terraform:1.6.1"
-    # default entrypoint is terraform command, but we want to run shell scripts
     entrypoint: ["/bin/sh", "-c"]
   artifacts:
     paths:
-      - "terraform/environments/crash.log" # optional, only available in case of a crash/panic
-      - "terraform/environments/terraform-*.log" # separate log for every step/command
+      - "terraform/environments/crash.log"
+      - "terraform/environments/terraform-*.log"
       - $API_BASE_URL_PATH
     name: "${CI_JOB_NAME}_${CI_JOB_ID}"
-    #when: on_failure # can't do that for api base url, but can't define multiple artifacts
     expire_in: 1 week
   variables:
     ENVIRONMENT_ID: $CI_ENVIRONMENT_SLUG
   script:
     - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
     - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
+    - echo "$(terraform/environments/scripts/get-output.sh api_domain)" > $API_DOMAIN_PATH
+  resource_group: $ENVIRONMENT_ID
+  interruptible: false
 
 staging_deploy:
   extends: .deploy

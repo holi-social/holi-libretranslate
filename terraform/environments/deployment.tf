@@ -17,11 +17,6 @@ resource "google_project_service" "service" {
   disable_on_destroy         = false
 }
 
-variable "image_tag" {
-  type     = string
-  nullable = false
-}
-
 resource "google_cloud_run_v2_service" "libretranslate_service" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = random_id.main.hex
@@ -31,7 +26,7 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
   template {
     service_account = data.terraform_remote_state.holi_libretranslate_common_state.outputs.cloud_run_service_account_email
     containers {
-      image = "${data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_location}/holi-libretranslate:${var.image_tag}"
+      image = "libretranslate/libretranslate:latest"
       ports {
         container_port = 5000
       }
@@ -50,8 +45,8 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
     scaling {
       min_instance_count = local.environment == "production" ? "1" : "0"
       max_instance_count = local.environment == "production" ? "10" : "3"
-
     }
+
     vpc_access {
       connector = "projects/${data.terraform_remote_state.holi_infra_state.outputs.shared_project_id}/locations/${local.default_region}/connectors/${data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name}"
       egress    = "PRIVATE_RANGES_ONLY"
