@@ -29,80 +29,62 @@ variable "image_tag" {
   nullable = false
 }
 
-resource "google_cloud_run_service" "libretranslate" {
+resource "google_cloud_run_v2_service" "libretranslate" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = random_id.main.hex
   location = local.default_region
-  # https://github.com/hashicorp/terraform-provider-google/issues/5898
-  autogenerate_revision_name = true
+  ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
 
   template {
-    spec {
-      service_account_name = data.terraform_remote_state.holi_libretranslate_common_state.outputs.cloud_run_service_account_email
-      containers {
-        image = "libretranslate/libretranslate:latest"
-        ports {
-          container_port = 5000
-        }
-        env {
-          name  = "ENVIRONMENT"
-          value = local.environment
-        }
-        resources {
-          limits = {
-            # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
-            cpu    = "1000m"
-            memory = "8Gi"
-          }
-          requests = {
-            cpu    = "1000m"
-            memory = "8Gi"
-          }
+    service_account = data.terraform_remote_state.holi_libretranslate_common_state.outputs.cloud_run_service_account_email
+    containers {
+      image = "libretranslate/libretranslate:latest"
+      ports {
+        container_port = 5000
+      }
+      env {
+        name  = "ENVIRONMENT"
+        value = local.environment
+      }
+      resources {
+        limits = {
+          cpu    = "4"
+          memory = "8Gi"
         }
       }
-      container_concurrency = 0 # 0 means thread safe, no restriction on max concurrency
     }
-    # template annotations: https://cloud.google.com/run/docs/reference/rpc/google.cloud.run.v1#revisiontemplate
-    metadata {
-      annotations = {
-        "autoscaling.knative.dev/minScale" = local.environment == "production" ? "1" : "0"
-        "autoscaling.knative.dev/maxScale" = local.environment == "production" ? "10" : "3"
-        # Use the VPC Connector
-        "run.googleapis.com/vpc-access-connector" = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
-        # possible values: all-traffic/private-ranges-only(default) https://cloud.google.com/sdk/gcloud/reference/run/services/update#--vpc-egress
-        "run.googleapis.com/vpc-access-egress" = "private-ranges-only"
-      }
-    }
-  }
 
-  # only accept traffic from the internal network, not from the internet
-  metadata {
-    annotations = {
-      # possible values: all/internal/internal-and-cloud-load-balancing https://cloud.google.com/sdk/gcloud/reference/run/services/update#--ingress
-      "run.googleapis.com/ingress" = "internal"
+    scaling {
+      min_instance_count = local.environment == "production" ? "1" : "0"
+      max_instance_count = local.environment == "production" ? "10" : "3"
+
+    }
+    vpc_access {
+      connector = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
+      egress    = "PRIVATE_RANGES_ONLY"
     }
   }
 
   traffic {
-    percent         = 100
-    latest_revision = true
+    percent = 100
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
   }
 
   depends_on = [google_project_service.service]
 }
 
 resource "google_cloud_run_domain_mapping" "holi_social_libretranslate" {
-  project = google_cloud_run_service.libretranslate.project
+  project = google_cloud_run_v2_service.libretranslate.project
   # location needs to be the same as the service's
-  location = google_cloud_run_service.libretranslate.location
+  location = google_cloud_run_v2_service.libretranslate.location
   name     = local.dns_name
 
   metadata {
-    namespace = google_cloud_run_service.libretranslate.project
+    namespace = google_cloud_run_v2_service.libretranslate.project
   }
 
   spec {
-    route_name = google_cloud_run_service.libretranslate.name
+    route_name = google_cloud_run_v2_service.libretranslate.name
   }
 }
 
@@ -116,10 +98,10 @@ data "google_iam_policy" "libretranslate" {
   }
 }
 
-resource "google_cloud_run_service_iam_policy" "libretranslate" {
-  location = google_cloud_run_service.libretranslate.location
-  project  = google_cloud_run_service.libretranslate.project
-  service  = google_cloud_run_service.libretranslate.name
+resource "google_cloud_run_v2_service_iam_policy" "libretranslate" {
+  location = google_cloud_run_v2_service.libretranslate.location
+  project  = google_cloud_run_v2_service.libretranslate.project
+  service  = google_cloud_run_v2_service.libretranslate.name
 
   policy_data = data.google_iam_policy.libretranslate.policy_data
 }
