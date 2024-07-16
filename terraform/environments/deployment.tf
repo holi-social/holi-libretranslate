@@ -40,7 +40,7 @@ resource "google_cloud_run_service" "libretranslate" {
     spec {
       service_account_name = data.terraform_remote_state.holi_libretranslate_common_state.outputs.cloud_run_service_account_email
       containers {
-        image = "${data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_location}/holi-libretranslate:${var.image_tag}"
+        image = "libretranslate/libretranslate:latest"
         ports {
           container_port = 5000
         }
