@@ -99,9 +99,8 @@ data "google_iam_policy" "libretranslate" {
 }
 
 resource "google_cloud_run_v2_service_iam_policy" "libretranslate" {
-  location = google_cloud_run_v2_service.libretranslate.location
-  project  = google_cloud_run_v2_service.libretranslate.project
-  service  = google_cloud_run_v2_service.libretranslate.name
-
+  name        = google_cloud_run_v2_service.libretranslate.name
+  location    = google_cloud_run_v2_service.libretranslate.location
+  project     = google_cloud_run_v2_service.libretranslate.project
   policy_data = data.google_iam_policy.libretranslate.policy_data
 }
