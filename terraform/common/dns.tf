@@ -1,9 +1,7 @@
 locals {
-  # effectively, this is libretranslate.apis.holi.social
   libretranslate_environments_zone_dns_name = "libretranslate.${data.terraform_remote_state.holi_infra_state.outputs.dns_apis_zone_domain}."
 }
 
-# libretranslate api environments zone
 resource "google_dns_managed_zone" "libretranslate_environments_zone" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = "libretranslate-holi-social-environments-zone"

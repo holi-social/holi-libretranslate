@@ -13,7 +13,6 @@ data "terraform_remote_state" "holi_infra_state" {
   }
 }
 
-# provider google including beta features
 provider "google" {
   region = local.default_region
 }

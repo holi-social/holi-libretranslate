@@ -1,8 +1,3 @@
-/**
- * The resource ids of resources must be unique. Since we might create resources for a branch multiple times
- * (after destroying the ones created before maybe failed, e.g. on environment cleanup, reopening a branch), we ensure uniqueness
- * by appending some random data to resource ids in order to avoid collisions.
- */
 resource "random_id" "main" {
   byte_length = 2
   prefix      = "libretranslate-${local.environment_name}-"
@@ -17,13 +12,10 @@ resource "google_project_service" "service" {
 
   service = each.key
 
-  project = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
-  # keep this property as false. Having it true caused https://holi.atlassian.net/wiki/spaces/HOLI/pages/348258312/2023-06-27+All+services+down
+  project                    = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   disable_dependent_services = false
   disable_on_destroy         = false
 }
-
-# in CI, this is set via scripts/create-or-update-env.sh 
 variable "image_tag" {
   type     = string
   nullable = false
@@ -59,10 +51,10 @@ resource "google_cloud_run_v2_service" "libretranslate" {
       max_instance_count = local.environment == "production" ? "10" : "3"
 
     }
-    /*     vpc_access {
-      connector = data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name
+    vpc_access {
+      connector = "projects/${data.terraform_remote_state.holi_infra_state.outputs.shared_project_id}/locations/${local.default_region}/connectors/${data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name}"
       egress    = "PRIVATE_RANGES_ONLY"
-    } */
+    }
   }
 
   traffic {
@@ -74,8 +66,7 @@ resource "google_cloud_run_v2_service" "libretranslate" {
 }
 
 resource "google_cloud_run_domain_mapping" "holi_social_libretranslate" {
-  project = google_cloud_run_v2_service.libretranslate.project
-  # location needs to be the same as the service's
+  project  = google_cloud_run_v2_service.libretranslate.project
   location = google_cloud_run_v2_service.libretranslate.location
   name     = local.dns_name
 
@@ -88,7 +79,6 @@ resource "google_cloud_run_domain_mapping" "holi_social_libretranslate" {
   }
 }
 
-# TODO security: Can we restrict this to a specific service account (of the API proxy) some day?
 data "google_iam_policy" "libretranslate" {
   binding {
     role = "roles/run.invoker"
