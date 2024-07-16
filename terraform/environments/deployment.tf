@@ -16,12 +16,13 @@ resource "google_project_service" "service" {
   disable_dependent_services = false
   disable_on_destroy         = false
 }
+
 variable "image_tag" {
   type     = string
   nullable = false
 }
 
-resource "google_cloud_run_v2_service" "libretranslate" {
+resource "google_cloud_run_v2_service" "libretranslate_service" {
   project  = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
   name     = random_id.main.hex
   location = local.default_region
@@ -30,7 +31,7 @@ resource "google_cloud_run_v2_service" "libretranslate" {
   template {
     service_account = data.terraform_remote_state.holi_libretranslate_common_state.outputs.cloud_run_service_account_email
     containers {
-      image = "libretranslate/libretranslate:latest"
+      image = "${data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_location}/holi-libretranslate:${var.image_tag}"
       ports {
         container_port = 5000
       }
@@ -66,16 +67,16 @@ resource "google_cloud_run_v2_service" "libretranslate" {
 }
 
 resource "google_cloud_run_domain_mapping" "holi_social_libretranslate" {
-  project  = google_cloud_run_v2_service.libretranslate.project
-  location = google_cloud_run_v2_service.libretranslate.location
+  project  = google_cloud_run_v2_service.libretranslate_service.project
+  location = google_cloud_run_v2_service.libretranslate_service.location
   name     = local.dns_name
 
   metadata {
-    namespace = google_cloud_run_v2_service.libretranslate.project
+    namespace = google_cloud_run_v2_service.libretranslate_service.project
   }
 
   spec {
-    route_name = google_cloud_run_v2_service.libretranslate.name
+    route_name = google_cloud_run_v2_service.libretranslate_service.name
   }
 }
 
@@ -89,8 +90,8 @@ data "google_iam_policy" "libretranslate" {
 }
 
 resource "google_cloud_run_v2_service_iam_policy" "libretranslate" {
-  name        = google_cloud_run_v2_service.libretranslate.name
-  location    = google_cloud_run_v2_service.libretranslate.location
-  project     = google_cloud_run_v2_service.libretranslate.project
+  name        = google_cloud_run_v2_service.libretranslate_service.name
+  location    = google_cloud_run_v2_service.libretranslate_service.location
+  project     = google_cloud_run_v2_service.libretranslate_service.project
   policy_data = data.google_iam_policy.libretranslate.policy_data
 }

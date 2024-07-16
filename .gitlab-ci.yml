@@ -1,9 +1,31 @@
 default:
+  before_script:
+    - set -eux
+    - env
+  interruptible: true
   tags:
     - 1cpu-4gb
 
 stages:
+  - build
   - deploy
+
+build_docker:
+  image: docker:20.10
+  stage: "build"
+  services:
+    - docker:20.10-dind
+  variables:
+    ARTIFACT_IMAGE: europe-north1-docker.pkg.dev/holi-shared/docker/holi-libretranslate
+  before_script:
+    - cat $GOOGLE_CLOUD_SERVICE_ACCOUNT | docker login -u _json_key --password-stdin https://europe-north1-docker.pkg.dev
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo '===> building LibreTranslate image'
+    - docker pull $ARTIFACT_IMAGE || true # Allows us to use --cache-from, we need to tag with latest in the next command for this to work
+    - docker build --cache-from $ARTIFACT_IMAGE -t $ARTIFACT_IMAGE:latest -t $ARTIFACT_IMAGE:$CI_COMMIT_SHA -t $ARTIFACT_IMAGE:$CI_COMMIT_REF_SLUG .
+    - docker push $ARTIFACT_IMAGE:$CI_COMMIT_SHA # this is the tag that is used for deployment
+    - docker push $ARTIFACT_IMAGE:$CI_COMMIT_REF_SLUG # just for easily knowing which is the last image for a branch
 
 .deploy:
   stage: "deploy"
