@@ -48,16 +48,15 @@ resource "google_cloud_run_service" "libretranslate" {
           name  = "ENVIRONMENT"
           value = local.environment
         }
-
         resources {
           limits = {
             # cpu can only be scaled down to 1000m as long as container_concurrency is set to != 1
-            cpu    = local.environment == "production" ? "1000m" : "1000m"
-            memory = local.environment == "production" ? "512Mi" : "256Mi"
+            cpu    = "1000m"
+            memory = "8Gi"
           }
           requests = {
-            cpu    = local.environment == "production" ? "1000m" : "1000m"
-            memory = local.environment == "production" ? "512Mi" : "256Mi"
+            cpu    = "1000m"
+            memory = "8Gi"
           }
         }
       }
@@ -107,6 +106,7 @@ resource "google_cloud_run_domain_mapping" "holi_social_libretranslate" {
   }
 }
 
+# TODO security: Can we restrict this to a specific service account (of the API proxy) some day?
 data "google_iam_policy" "libretranslate" {
   binding {
     role = "roles/run.invoker"
