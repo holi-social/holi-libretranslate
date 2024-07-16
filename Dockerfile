@@ -1,5 +1,9 @@
-FROM python:3.11.9-slim-bullseye
+FROM libretranslate/libretranslate:latest
 
-RUN pip install libretranslate
+USER libretranslate
 
-ENTRYPOINT [ "libretranslate"]
+WORKDIR /app
+
+RUN ./venv/bin/python scripts/install_models.py
+
+ENTRYPOINT [ "./venv/bin/libretranslate" ]

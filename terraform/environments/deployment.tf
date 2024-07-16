@@ -32,13 +32,18 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
     service_account = data.terraform_remote_state.holi_libretranslate_common_state.outputs.cloud_run_service_account_email
     containers {
       image = "${data.terraform_remote_state.holi_infra_state.outputs.artifact_registry_location}/holi-libretranslate:${var.image_tag}"
+
       ports {
         container_port = 5000
       }
+
       env {
         name  = "ENVIRONMENT"
         value = local.environment
       }
+
+      args = ["--host", "0.0.0.0"]
+
       resources {
         limits = {
           cpu    = "4"
