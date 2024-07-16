@@ -1,0 +1,13 @@
+resource "google_dns_record_set" "holi_social_libretranslate_domain_record_set" {
+  project      = data.terraform_remote_state.holi_infra_state.outputs.shared_project_id
+  managed_zone = data.terraform_remote_state.holi_libretranslate_common_state.outputs.dns_libretranslate_domain_name
+  name         = "${google_cloud_run_domain_mapping.holi_social_libretranslate.name}."
+  type         = google_cloud_run_domain_mapping.holi_social_libretranslate.status[0].resource_records[0].type
+  ttl          = 300
+  rrdatas      = [google_cloud_run_domain_mapping.holi_social_libretranslate.status[0].resource_records[0].rrdata]
+}
+
+output "api_domain" {
+  value       = trimsuffix(google_dns_record_set.holi_social_libretranslate_domain_record_set.name, ".")
+  description = "Domain where the api resides"
+}
