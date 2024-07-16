@@ -6,15 +6,16 @@ stages:
   - build
   - deploy
 
-image: docker:dind # Use Docker as the runner
-
 variables:
-  IMAGE_NAME: libretranslate/libretranslate
+  IMAGE_NAME: libretranslate/libretranslate:latest
 
 build:
   stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
   script:
-    - docker pull $IMAGE_NAME # Pull the Libretranslate image
+    - docker pull $IMAGE_NAME
 
 .deploy:
   stage: "deploy"
