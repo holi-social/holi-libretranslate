@@ -46,8 +46,8 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
 
       resources {
         limits = {
-          cpu    = "4"
-          memory = "8Gi"
+          cpu    = "1"
+          memory = "512Mi"
         }
       }
     }
