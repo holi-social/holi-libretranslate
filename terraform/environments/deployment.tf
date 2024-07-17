@@ -42,7 +42,7 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
         value = local.environment
       }
 
-      args = ["--host", "0.0.0.0"]
+      args = ["--host", "0.0.0.0", "--disable-web-ui"]
 
       resources {
         limits = {
@@ -53,7 +53,7 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
     }
 
     scaling {
-      min_instance_count = local.environment == "production" ? "1" : "0"
+      min_instance_count = "1"
       max_instance_count = local.environment == "production" ? "10" : "3"
     }
 
