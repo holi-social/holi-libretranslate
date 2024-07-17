@@ -4,6 +4,12 @@ USER libretranslate
 
 WORKDIR /app
 
-RUN ./venv/bin/python scripts/install_models.py
+ARG lang_codes
+
+RUN if [ -n "$lang_codes" ]; then \
+    ./venv/bin/python scripts/install_models.py --load_only_lang_codes "$lang_codes"; \
+    else \
+    ./venv/bin/python scripts/install_models.py; \
+    fi
 
 ENTRYPOINT [ "./venv/bin/libretranslate" ]
