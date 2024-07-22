@@ -5,7 +5,7 @@ CONTAINER_NAME=holi-libretranslate
 
 if [[ "$(docker images -q $IMAGE_NAME 2> /dev/null)" == "" ]]; then
     echo "Image $IMAGE_NAME does not exist. Building the image..."
-    docker build -t $IMAGE_NAME --build-arg lang_codes=en,de .
+    docker build -t $IMAGE_NAME -f Dockerfile.local .
 fi
 
 if [[ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]]; then
