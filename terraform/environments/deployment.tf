@@ -46,7 +46,7 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
 
       resources {
         limits = {
-          cpu    = "1"
+          cpu    = local.environment == "production" ? "2" : "1"
           memory = "1Gi"
         }
       }
