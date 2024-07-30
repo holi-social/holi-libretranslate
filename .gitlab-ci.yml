@@ -42,7 +42,6 @@ build_docker:
   variables:
     ENVIRONMENT_ID: $CI_ENVIRONMENT_SLUG
   script:
-    - export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CLOUD_SERVICE_ACCOUNT}
     - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
 
 staging_deploy:
