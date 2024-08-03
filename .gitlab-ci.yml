@@ -16,9 +16,9 @@ stages:
   - deploy
 
 build_docker:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:24.0.5'
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:27'
   services:
-    - docker:24.0.5-dind
+    - 'docker:27-dind'
   stage: "build"
   variables:
     ARTIFACT_IMAGE: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-libretranslate'
