@@ -61,6 +61,12 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
       connector = "projects/${data.terraform_remote_state.holi_infra_state.outputs.shared_project_id}/locations/${local.default_region}/connectors/${data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name}"
       egress    = "ALL_TRAFFIC"
     }
+
+    labels = {
+      "environment_type" = local.environment_type
+      "holi_service"     = "libretranslate"
+    }
+
   }
 
   traffic {
