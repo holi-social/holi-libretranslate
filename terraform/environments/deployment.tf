@@ -49,11 +49,13 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
           cpu    = local.environment == "production" ? "2" : "1"
           memory = "1Gi"
         }
+        cpu_idle          = true
+        startup_cpu_boost = true
       }
     }
 
     scaling {
-      min_instance_count = "1"
+      min_instance_count = local.environment == "production" ? "1" : "0"
       max_instance_count = local.environment == "production" ? "10" : "3"
     }
 
