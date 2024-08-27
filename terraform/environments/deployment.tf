@@ -64,6 +64,7 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
       egress    = "ALL_TRAFFIC"
     }
 
+    # labels set on the resource level
     labels = {
       "environment_type" = local.environment_type
       "holi_service"     = "libretranslate"
@@ -74,6 +75,12 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
   traffic {
     percent = 100
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+  }
+
+  # labels set on the service level
+  labels = {
+    "environment_type" = local.environment_type
+    "holi_service"     = "libretranslate"
   }
 
   depends_on = [google_project_service.service]
