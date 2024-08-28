@@ -49,11 +49,13 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
           cpu    = local.environment == "production" ? "2" : "1"
           memory = "1Gi"
         }
+        cpu_idle          = true
+        startup_cpu_boost = true
       }
     }
 
     scaling {
-      min_instance_count = "1"
+      min_instance_count = local.environment == "production" ? "1" : "0"
       max_instance_count = local.environment == "production" ? "10" : "3"
     }
 
@@ -61,11 +63,24 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
       connector = "projects/${data.terraform_remote_state.holi_infra_state.outputs.shared_project_id}/locations/${local.default_region}/connectors/${data.terraform_remote_state.holi_infra_state.outputs.vpc_access_connector_name}"
       egress    = "ALL_TRAFFIC"
     }
+
+    # labels set on the resource level
+    labels = {
+      "environment_type" = local.environment_type
+      "holi_service"     = "libretranslate"
+    }
+
   }
 
   traffic {
     percent = 100
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+  }
+
+  # labels set on the service level
+  labels = {
+    "environment_type" = local.environment_type
+    "holi_service"     = "libretranslate"
   }
 
   depends_on = [google_project_service.service]
