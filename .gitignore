@@ -3,3 +3,4 @@
 .holi-terraform.key
 .envrc.local
 .vscode
+terraform*.log
