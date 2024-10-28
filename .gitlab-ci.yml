@@ -25,10 +25,10 @@ build_docker:
     ARTIFACT_IMAGE: 'europe-north1-docker.pkg.dev/holi-shared/docker/holi-libretranslate'
   script:
     - echo '===> building LibreTranslate image'
-    - docker pull $ARTIFACT_IMAGE || true
-    - docker build --cache-from $ARTIFACT_IMAGE -t $ARTIFACT_IMAGE:latest -t $ARTIFACT_IMAGE:$CI_COMMIT_SHA -t $ARTIFACT_IMAGE:$CI_COMMIT_REF_SLUG .
-    - docker push $ARTIFACT_IMAGE:$CI_COMMIT_SHA
-    - docker push $ARTIFACT_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker pull "$ARTIFACT_IMAGE" || true
+    - docker build --cache-from "$ARTIFACT_IMAGE" -t "$ARTIFACT_IMAGE":latest -t "$ARTIFACT_IMAGE":"$CI_COMMIT_SHA" -t "$ARTIFACT_IMAGE":"$CI_COMMIT_REF_SLUG" .
+    - docker push "$ARTIFACT_IMAGE":"$CI_COMMIT_SHA"
+    - docker push "$ARTIFACT_IMAGE":"$CI_COMMIT_REF_SLUG"
 
 .deploy:
   stage: "deploy"
@@ -45,7 +45,7 @@ build_docker:
   variables:
     ENVIRONMENT_ID: $CI_ENVIRONMENT_SLUG
   script:
-    - terraform/environments/scripts/create-or-update-env.sh $ENVIRONMENT_ID $CI_COMMIT_SHA
+    - terraform/environments/scripts/create-or-update-env.sh "$ENVIRONMENT_ID" "$CI_COMMIT_SHA"
 
 staging_deploy:
   extends: .deploy
