@@ -52,6 +52,25 @@ resource "google_cloud_run_v2_service" "libretranslate_service" {
         cpu_idle          = true
         startup_cpu_boost = true
       }
+      startup_probe {
+        http_get {
+          path = "/languages"
+        }
+        initial_delay_seconds = 30
+        failure_threshold     = 3
+        period_seconds        = 10
+        timeout_seconds       = 5
+      }
+
+      liveness_probe {
+        http_get {
+          path = "/languages"
+        }
+        initial_delay_seconds = 60
+        period_seconds        = 60
+        timeout_seconds       = 10
+        failure_threshold     = 3
+      }
     }
 
     scaling {
