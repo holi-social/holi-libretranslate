@@ -4,3 +4,4 @@
 .envrc.local
 .vscode
 terraform*.log
+/.gitlab-ci-local
