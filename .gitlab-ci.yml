@@ -34,7 +34,7 @@ build_docker:
 .deploy:
   stage: "deploy"
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.10.5'
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.11.2'
     entrypoint: ["/bin/sh", "-c"]
   artifacts:
     paths:
