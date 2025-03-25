@@ -4,9 +4,7 @@ variables:
 default:
   before_script:
     - set -eu
-    # env -0 | sort -z | tr '\0' '\n': Sort env output alphabetically, keeping multiline variables intact
-    # egrep: Remove sensitive information from the output of env
-    #- env -0 | sort -z | tr '\0' '\n' | egrep -ve '^(DOCKER_AUTH_CONFIG|GOOGLE_APPLICATION_CREDENTIALS)=.*'
+    # DANGER don't use `set -x` or print the environment via e.g. `env` in pipeline runs, this might leak credentials (has leaked them)
   interruptible: true
   tags:
     - 1cpu-4gb
@@ -34,7 +32,7 @@ build_docker:
 .deploy:
   stage: "deploy"
   image:
-    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.10.5'
+    name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/hashicorp/terraform:1.11.2'
     entrypoint: ["/bin/sh", "-c"]
   artifacts:
     paths:
@@ -62,24 +60,28 @@ staging_deploy:
   extends: .deploy
   variables:
     ENVIRONMENT_ID: "staging"
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 staging_smoketest:
   extends: .smoketest
   needs: ['staging_deploy']
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
 
 production_deploy:
   extends: .deploy
   variables:
     ENVIRONMENT_ID: "production"
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
 
 production_smoketest:
   extends: .smoketest
   needs: ['production_deploy']
-  only:
-    - production
+  rules:
+    - if: $CI_COMMIT_BRANCH == "production"
+      when: on_success
