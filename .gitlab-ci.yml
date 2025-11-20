@@ -14,9 +14,9 @@ stages:
   - deploy
 
 build_docker:
-  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28'
+  image: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:29'
   services:
-    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:28-dind'
+    - name: 'europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/docker:29-dind'
       alias: 'docker'
   stage: "build"
   variables:
