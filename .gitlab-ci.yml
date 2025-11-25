@@ -24,7 +24,7 @@ build_docker:
   script:
     - echo '===> building LibreTranslate image'
     - docker pull "$ARTIFACT_IMAGE" || true
-    - docker build --cache-from "$ARTIFACT_IMAGE" -t "$ARTIFACT_IMAGE":latest -t "$ARTIFACT_IMAGE":"$CI_COMMIT_SHA" -t "$ARTIFACT_IMAGE":"$CI_COMMIT_REF_SLUG" --build-arg lang_codes="cs, da, nl, fi, el, hu, it, no, pl, pt, ro, ru, sk, sl, sv, tr, uk, fr, de, es".
+    - docker build --cache-from "$ARTIFACT_IMAGE" -t "$ARTIFACT_IMAGE":latest -t "$ARTIFACT_IMAGE":"$CI_COMMIT_SHA" -t "$ARTIFACT_IMAGE":"$CI_COMMIT_REF_SLUG" --build-arg lang_codes="cs, da, nl, fi, el, hu, it, no, pl, pt, ro, ru, sk, sl, sv, tr, uk, fr, de, es" .
     - docker push "$ARTIFACT_IMAGE":"$CI_COMMIT_SHA"
     - docker push "$ARTIFACT_IMAGE":"$CI_COMMIT_REF_SLUG"
     - docker push "$ARTIFACT_IMAGE":latest # for caching the build
