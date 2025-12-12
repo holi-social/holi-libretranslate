@@ -1,4 +1,4 @@
-FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/libretranslate/libretranslate:latest
+FROM europe-north1-docker.pkg.dev/holi-shared/docker-hub-remote/libretranslate/libretranslate:v1.8.2
 
 USER libretranslate
 
